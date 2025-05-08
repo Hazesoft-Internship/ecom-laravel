@@ -2,65 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreOrderItemRequest;
-use App\Http\Requests\UpdateOrderItemRequest;
 use App\Models\OrderItem;
+use App\Models\Product;
 
 class OrderItemController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreOrderItemRequest $request)
+    public static function store($orderId, $cart_items)
     {
-        //
-    }
+        foreach ($cart_items as $cartItem) {
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(OrderItem $orderItem)
-    {
-        //
-    }
+            OrderItem::create([
+                'order_id' => $orderId,
+                'product_id' => $cartItem['product_id'],
+                'quantity' => $cartItem['quantity'],
+                'price' => $cartItem['product']['price'],
+                'total_price' => $cartItem['total'],
+            ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(OrderItem $orderItem)
-    {
-        //
-    }
+            $product = Product::find($cartItem['product_id']);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateOrderItemRequest $request, OrderItem $orderItem)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(OrderItem $orderItem)
-    {
-        //
+            if ($product) {
+                $product->stock -= $cartItem['quantity'];
+                $product->save();
+            }
+        }
     }
 }
