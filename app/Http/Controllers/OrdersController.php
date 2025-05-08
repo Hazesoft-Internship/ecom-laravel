@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrdersRequest;
-use App\Http\Requests\UpdateOrdersRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use App\Models\Cart;
@@ -26,11 +25,6 @@ class OrdersController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create() {}
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreOrdersRequest $request)
@@ -50,23 +44,7 @@ class OrdersController extends Controller
 
         $order = Order::create($attributes);
         $orderId = $order->id;
-        foreach ($cart_items as $cartItem) {
-
-            OrderItem::create([
-                'order_id' => $orderId,
-                'product_id' => $cartItem['product_id'],
-                'quantity' => $cartItem['quantity'],
-                'price' => $cartItem['product']['price'],
-                'total_price' => $cartItem['total'],
-            ]);
-
-            $product = Product::find($cartItem['product_id']);
-
-            if ($product) {
-                $product->stock -= $cartItem['quantity'];
-                $product->save();
-            }
-        }
+        OrderItemController::store($orderId,$cart_items);
         CartItem::where('cart_id', $cartId)->delete();
         return redirect('/home');
     }
